@@ -1,29 +1,31 @@
-from celery import Celery
 from uploader import Image_Upload
+from config import BASE_PATH
+import requests
+import json
 import os
 import re
 
-main_workers = Celery('main_workers', backend='redis://localhost',  broker='redis://localhost')
-
-BASE_PATH = '/Users/sergejbaskakov/Desktop/Python/test_rq/src/'
 
 def Sort_Files(onlyFiles):
     onlyFiles.sort(key=lambda file: int(
         ''.join(re.findall('\d+', file.partition('.')[:1][0]))))
 
 
-@main_workers.task
-def Send_Title(title):
-    Files_Names = Get_Files_Names(title)
-    print(Files_Names)
+def Send_Title(title_name, Postmen_data):
+    Files_Names = Get_Files_Names(title_name)
     Files_urls = []
-    src = []
+    senders = []
     for file in Files_Names:
-        src.append(Image_Upload.delay(title=title, file=file))
-    for tasks in src:
-        tasks.wait(timeout=None, interval=0.5)
-        Files_urls.append(tasks.get())
-    return Files_urls
+        senders.append(Image_Upload.delay(title=title_name, file=file))
+    for sender in senders:
+        sender.wait(timeout=None, interval=0.5)
+        Files_urls.append({'tag': 'img', 'attrs': {'src': sender.get()}})
+    return Send_Post(title_name, Files_urls, postmen_data=Postmen_data)
+
+
+def Sort_Files(onlyFiles):
+    onlyFiles.sort(key=lambda file: int(
+        ''.join(re.findall('\d+', file.partition('.')[:1][0]))))
 
 
 def Get_Files_Names(title, subtitle=None):
@@ -39,3 +41,11 @@ def Get_Files_Names(title, subtitle=None):
         pass
     Sort_Files(onlyFiles)
     return onlyFiles
+
+
+def Send_Post(title_name, content, postmen_data):
+    postmen_data['title'], postmen_data['content'] = title_name, content
+    print(postmen_data)
+    create_page = requests.post(
+        'https://api.telegra.ph/createPage?', json=postmen_data)
+    return json.loads(create_page.content)
