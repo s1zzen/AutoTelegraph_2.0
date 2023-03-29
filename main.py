@@ -3,10 +3,14 @@ import os
 import datetime
 import requests
 import json
-from config import BASE_PATH, SHORT_NAME, AUTHOR_NAME, AUTHOR_URL, REDIS_PATH
+from config import BASE_PATH, SHORT_NAME, AUTHOR_NAME, AUTHOR_URL
 
 
 def get_postmen():
+    '''
+    Подгружает данные для telegraph из graph_bot.json,
+    если файла не существует вызывает функцию регистрации
+    '''
     try:
         with open('graph_bot.json') as f:
             graph_bot = json.load(f)
@@ -17,11 +21,15 @@ def get_postmen():
                 'return_content': False
             }
         return data
-    except (Exception):
+    except(Exception):
         return Create_Account()
 
 
 def Create_Account():
+    '''
+    Функция регистрации использует данные из config.py(или cfg.env)
+    для создания аккаунта в telegraph и сохраняет токен в graph_bot.json
+    '''
     data = {
         'short_name': SHORT_NAME,
         'author_name': AUTHOR_NAME,
@@ -32,11 +40,11 @@ def Create_Account():
     answer = json.loads(response.content)
     if answer['ok']:
         with open('graph_bot.json', 'w', encoding='utf-8') as f:
-            json.dump(answer, f, ensure_ascii=False, indent=4)
+            json.dump(answer['result'], f, ensure_ascii=False, indent=4)
         data = {
-            'access_token': answer['result']['access_token'],
-            'author_name': answer['result']['author_name'],
-            'author_url': answer['result']['author_url'],
+            'access_token': answer['access_token'],
+            'author_name': answer['author_name'],
+            'author_url': answer['author_url'],
             'return_content': False
         }
         return data
@@ -45,6 +53,9 @@ def Create_Account():
 
 
 def Get_Tiles():
+    '''
+    Возвращает список папок в рабочей папке
+    '''
     try:
         lstOfTitles = os.listdir(BASE_PATH)
         try:
@@ -58,7 +69,6 @@ def Get_Tiles():
 
 
 if __name__ == "__main__":
-    print(REDIS_PATH)
     Titles = Get_Tiles()
     postmen = get_postmen()
     counter = 1

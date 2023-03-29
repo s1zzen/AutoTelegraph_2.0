@@ -7,9 +7,16 @@ import re
 
 
 def Sort_Files(onlyFiles):
-    onlyFiles.sort(key=lambda file: int(
-        ''.join(re.findall('\d+', file.partition('.')[:1][0]))))
-
+    """
+    Сортировка файлов по числам в названии,
+    если есть хоть один непронумированный файл,
+    сортировка будет пропущена
+    """
+    try:
+        onlyFiles.sort(key=lambda file: int(
+            ''.join(re.findall('\d+', file.partition('.')[:1][0]))))
+    except:
+        pass
 
 def Send_Title(title_name, Postmen_data):
     Files_Names = Get_Files_Names(title_name)
@@ -23,12 +30,11 @@ def Send_Title(title_name, Postmen_data):
     return Send_Post(title_name, Files_urls, postmen_data=Postmen_data)
 
 
-def Sort_Files(onlyFiles):
-    onlyFiles.sort(key=lambda file: int(
-        ''.join(re.findall('\d+', file.partition('.')[:1][0]))))
-
-
 def Get_Files_Names(title, subtitle=None):
+    '''
+    Возвращает отсортированный список названий файлов
+    (subtitle - недопиленная система мульти-пакетного обработчика)
+    '''
     if subtitle == None:
         osDir = f"{BASE_PATH}{title}/"
     else:
@@ -44,8 +50,13 @@ def Get_Files_Names(title, subtitle=None):
 
 
 def Send_Post(title_name, content, postmen_data):
+    '''
+    Создание поста
+    на вход получает:
+    postmen_data - первичные данные с токеном
+    content и title_name - набор ссылок на файлы и название поста(тайтла)
+    '''
     postmen_data['title'], postmen_data['content'] = title_name, content
-    print(postmen_data)
     create_page = requests.post(
         'https://api.telegra.ph/createPage?', json=postmen_data)
     return json.loads(create_page.content)
