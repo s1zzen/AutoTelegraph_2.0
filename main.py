@@ -21,7 +21,7 @@ def get_postmen():
                 'return_content': False
             }
         return data
-    except(Exception):
+    except (Exception):
         return Create_Account()
 
 
@@ -42,9 +42,9 @@ def Create_Account():
         with open('graph_bot.json', 'w', encoding='utf-8') as f:
             json.dump(answer['result'], f, ensure_ascii=False, indent=4)
         data = {
-            'access_token': answer['access_token'],
-            'author_name': answer['author_name'],
-            'author_url': answer['author_url'],
+            'access_token': answer['result']['access_token'],
+            'author_name': answer['result']['author_name'],
+            'author_url': answer['result']['author_url'],
             'return_content': False
         }
         return data
@@ -75,11 +75,18 @@ if __name__ == "__main__":
     for Title in Titles:
         print(f'{counter}: {Title}')
         counter += 1
+    print("\'all\' for all: ")
     answer = input('\nС каким тайтлом работаем? : ')
     if answer.isdigit() and int(answer) <= len(Titles):
         Title = Titles[int(answer) - 1]
         time_start = datetime.datetime.now()
         result = Send_Title(Title, postmen)
         print(f'{result}\n\n{datetime.datetime.now() - time_start}')
+    elif answer == "all":
+        result = {}
+        for Title in Titles:
+            result[Title] = Send_Title(Title, postmen)
+        with open('Exit.json', 'w') as f:
+            json.dump(result, f, ensure_ascii=False, indent=4)
     else:
         print('Error input')

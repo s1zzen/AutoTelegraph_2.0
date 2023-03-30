@@ -2,4 +2,5 @@
 /venv
 cfg.env
 graph_bot.json
-/__pycahce__
+/__pycache__
+Exit.json
