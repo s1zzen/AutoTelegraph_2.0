@@ -29,7 +29,7 @@ def Image_Upload(title, file):
 
     telegraph_url = json.loads(response.content)
     if 'error' in telegraph_url:
-        return None
+        return telegraph_url['error']
     telegraph_url = telegraph_url[0]['src']
     telegraph_url = f'https://telegra.ph{telegraph_url}'
     return telegraph_url
