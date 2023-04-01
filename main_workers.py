@@ -18,6 +18,7 @@ def Sort_Files(onlyFiles):
     except:
         pass
 
+
 def Send_Title(title_name, Postmen_data):
     Files_Names = Get_Files_Names(title_name)
     Files_urls = []
@@ -26,6 +27,8 @@ def Send_Title(title_name, Postmen_data):
         senders.append(Image_Upload.delay(title=title_name, file=file))
     for sender in senders:
         sender.wait(timeout=None, interval=0.5)
+        if sender.get() == 'None':
+            print('Fail')
         Files_urls.append({'tag': 'img', 'attrs': {'src': sender.get()}})
     return Send_Post(title_name, Files_urls, postmen_data=Postmen_data)
 

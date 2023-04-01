@@ -8,8 +8,8 @@ uploader = Celery('uploader', backend=REDIS_PATH,
                   broker=REDIS_PATH)
 
 
-@uploader.task
-def Image_Upload(title, file):
+@uploader.task(bind=True, max_retries=2)
+def Image_Upload(self, title, file):
     path_to_file = f'{BASE_PATH}{title}/{file}'
     file_types = {'gif': 'image/gif', 'jpeg': 'image/jpeg',
                   'jpg': 'image/jpg', 'png': 'image/png',
@@ -29,7 +29,8 @@ def Image_Upload(title, file):
 
     telegraph_url = json.loads(response.content)
     if 'error' in telegraph_url:
-        return telegraph_url['error']
+        raise self.retry(
+            exc=telegraph_url['error'], countdown=2 ** self.request.retries)
     telegraph_url = telegraph_url[0]['src']
     telegraph_url = f'https://telegra.ph{telegraph_url}'
     return telegraph_url
